@@ -1,0 +1,13 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./db.development.sqlite"
+  },
+  "production": {
+    "username": "nips_demo",
+    "password": ".nips_demo.",
+    "database": "nips_demo",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

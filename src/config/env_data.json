@@ -1,0 +1,12 @@
+{
+  "development": {
+    "data_path": "public/data",
+    "upload_path": "public/upload",
+    "poster_worker_port": 8080
+  },
+  "production": {
+    "data_path": "/data/hupba/code/DemoNIPS/data",
+    "upload_path": "/data/hupba/code/DemoNIPS/upload",
+    "poster_worker_port": 9000
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "development": {
+    "path": "./ssl",
+    "key": "./test.key",
+    "crt": "./test.crt"
+  },
+  "production": {
+    "path": "./ssl",
+    "key": "./production.key",
+    "crt": "./production.crt"
+  }
+}
