@@ -5,6 +5,8 @@ var path      = require("path");
 var Sequelize = require("sequelize");
 var env       = process.env.NODE_ENV || "development";
 var db        = {};
+const uuidV4 = require('uuid/v4');
+
 /*
 var db_config = {
     "username": process.env.DB_USER | 'tesla',
@@ -45,24 +47,20 @@ Object.keys(db).forEach(function(modelName) {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-db.getConfigSync = function() {
-  var ret_val = null;
-  db.Config.findAll().then(function(data) {
-    if(data) {
-      ret_val = data[0];
-    } else {
-      db.Config.create().then(function (data) {
-        if (data) {
-          ret_val = data;
-        } else {
-          ret_val = {};
-        }
+db.getTeslaID = function(email, callback) {
+  db.TeslaID.findOne({ where: { email: email}}).then(
+      function(data) {
+          if (data) {
+            callback(data);
+          } else {
+              var new_val = uuidV4();
+              db.TeslaID.create({tesla_id: new_val, email:email}).then(
+                  function (data) {
+                      callback(data)
+                  }
+              );
+          }
       });
-    }
-  });
-  while(!ret_val);
-
-  return ret_val;
 };
 
 module.exports = db;

@@ -9,6 +9,7 @@ module.exports = function(sequelize, DataTypes) {
         email: DataTypes.STRING
     });
 
+    //TODO: Index by email, ensure is unique
     return TeslaID;
 };
 

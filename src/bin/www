@@ -9,7 +9,6 @@ var debug = require('debug')('tip:server');
 var http = require('http');
 var https = require('https'), fs=require('fs'), path = require('path');
 var env = process.env.NODE_ENV || "development";
-var models = require("../models");
 
 /**
  * Get port from environment and store in Express.
@@ -48,7 +47,6 @@ function normalizePort(val) {
 /**
  * Event listener for HTTP server "error" event.
  */
-
 function onError(error) {
   if (error.syscall !== 'listen') {
     throw error;
@@ -73,29 +71,45 @@ function onError(error) {
   }
 }
 
-models.sequelize.sync().then(function () {
-    /*
-     * Listen on provided port, on all network interfaces.
-     */
-    var server = app.listen(app.get('port'), function() {
-        console.log('TeSLA Identity Provider listening on port ' + server.address().port);
-        server.on('error', onError);
-        server.on('listening', onListening);
+/**
+ * Event listener for HTTP server "listening" event.
+ */
 
-        //setInterval(processSessionPoster, 1000, io, models);
-        if(server.address().port==srv_config.poster_worker_port) {
-            setTimeout(processSessionPoster, 1000, models);
-        }
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+  console.log('Listening on ' + bind);
+}
+
+// Wait for DB to be ready
+setTimeout(start_tip, 10000);
+
+function start_tip() {
+    var models = require("../models");
+    models.sequelize.sync().then(function () {
+        /*
+         * Listen on provided port, on all network interfaces.
+         */
+        var server = app.listen(app.get('port'), function() {
+            console.log('TeSLA Identity Provider listening on port ' + server.address().port);
+            server.on('error', onError);
+            server.on('listening', onListening);
+        });
+
+        /*
+        var httpsOptions = {
+            key: fs.readFileSync(path.join(config.path, config.key)),
+            cert: fs.readFileSync(path.join(config.path, config.crt))
+        };
+
+        var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function() {
+            console.log('TeSLA Identity Provider listening on port ' + app.get('port-ssl'));
+            server.on('error', onError);
+            server.on('listening', onListening);
+        });
+        */
     });
-
-    var httpsOptions = {
-        key: fs.readFileSync(path.join(config.path, config.key)),
-        cert: fs.readFileSync(path.join(config.path, config.crt))
-    };
-
-    var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function() {
-        console.log('TeSLA Identity Provider listening on port ' + app.get('port-ssl'));
-        server.on('error', onError);
-        server.on('listening', onListening);
-    });
-});
+}

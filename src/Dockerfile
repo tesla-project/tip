@@ -1,6 +1,8 @@
 FROM node:boron
 
-ENV PORT 3000
+ARG TIP_PORT
+
+ENV PORT $TIP_PORT
 
 # Create app directory
 RUN mkdir -p /usr/src/app
@@ -13,5 +15,5 @@ RUN npm install
 # Bundle app source
 COPY . /usr/src/app
 
-EXPOSE $PORT
+#EXPOSE $PORT
 CMD [ "npm", "start" ]
