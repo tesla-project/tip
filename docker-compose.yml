@@ -21,9 +21,14 @@ services:
      - "tip-db"
     networks:
       - tip-internal-network
+    volumes:
+      - ./src/ssl:/ssl
+
   tip-db:
     container_name: 'tip-db'
     image: postgres
+    ports:
+      - "6433:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USER}

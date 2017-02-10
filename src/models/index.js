@@ -7,22 +7,12 @@ var env       = process.env.NODE_ENV || "development";
 var db        = {};
 const uuidV4 = require('uuid/v4');
 
-/*
 var db_config = {
-    "username": process.env.DB_USER | 'tesla',
-    "password": process.env.DB_PASSWORD | 'TeSLApassword',
-    "database": process.env.DB_NAME | "TeSLAdb",
-    "host": process.env.DB_HOST | 'tip-db',
-    "port": process.env.DB_PORT | 5432,
-    "dialect": "postgres"
-  };
-*/
-var db_config = {
-    "username": 'tesla',
-    "password": 'TeSLApassword',
-    "database": 'TeSLAdb',
-    "host": 'tip-db',
-    "port": 5432,
+    "username": process.env.DB_USER,
+    "password": process.env.DB_PASSWORD,
+    "database": process.env.DB_NAME,
+    "host": process.env.DB_HOST,
+    "port": process.env.DB_PORT,
     "dialect": "postgres"
   };
 

@@ -16,7 +16,7 @@ var env = process.env.NODE_ENV || "development";
 var port = normalizePort(process.env.PORT || '8080');
 app.set('port', port);
 
-var port_ssl = normalizePort(process.env.SSL_PORT || '8443');
+var port_ssl = normalizePort(process.env.PORT || '8443');
 app.set('port-ssl', port_ssl);
 
 app.set('forceSSLOptions', {
@@ -93,23 +93,23 @@ function start_tip() {
         /*
          * Listen on provided port, on all network interfaces.
          */
-        var server = app.listen(app.get('port'), function() {
-            console.log('TeSLA Identity Provider listening on port ' + server.address().port);
-            server.on('error', onError);
-            server.on('listening', onListening);
-        });
+        if(process.env.USE_HTTP==1) {
+            var server = app.listen(app.get('port'), function () {
+                console.log('TeSLA Identity Provider listening on port ' + server.address().port);
+                server.on('error', onError);
+                server.on('listening', onListening);
+            });
+        } else {
+            var httpsOptions = {
+                key: fs.readFileSync(path.join('/ssl', process.env.SSL_KEY)),
+                cert: fs.readFileSync(path.join('/ssl', process.env.SSL_CERT))
+            };
 
-        /*
-        var httpsOptions = {
-            key: fs.readFileSync(path.join(config.path, config.key)),
-            cert: fs.readFileSync(path.join(config.path, config.crt))
-        };
-
-        var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function() {
-            console.log('TeSLA Identity Provider listening on port ' + app.get('port-ssl'));
-            server.on('error', onError);
-            server.on('listening', onListening);
-        });
-        */
+            var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function () {
+                console.log('TeSLA Identity Provider listening (SSL) on port ' + app.get('port-ssl'));
+                server_ssl.on('error', onError);
+                server_ssl.on('listening', onListening);
+            });
+        }
     });
 }
