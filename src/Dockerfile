@@ -19,6 +19,10 @@ RUN npm install apidoc -g
 # Bundle app source
 COPY . /usr/src/app
 
+# Create default SSL certs
+RUN mkdir -p /ssl
+COPY ./ssl/. /ssl
+
 # Create documentation
 RUN apidoc -i routes/
 
