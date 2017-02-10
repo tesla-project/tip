@@ -1,41 +1,27 @@
 version: '2'
 services:
   tip:
-    container_name: 'tip'
-    image: 'tip:0.1.0'
     build:
       context: ./src
       args:
         TIP_PORT: ${TIP_PORT}
-    ports:
-     - "8443:${TIP_PORT}"
     environment:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: "tip-db"
+      DB_HOST: ${DB_HOST}
       DB_SCHEMA: ${DB_SCHEMA}
       PORT: ${TIP_PORT}
     depends_on:
      - "tip-db"
-    networks:
-      - tip-internal-network
     volumes:
-      - ./src/ssl:/ssl
       - ./logs:/log
 
   tip-db:
-    container_name: 'tip-db'
     image: postgres
-    ports:
-      - "6433:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
-    networks:
-      - tip-internal-network
-networks:
-  tip-internal-network:
-    driver: bridge
+      POSTGRES_PORT: ${DB_PORT}
