@@ -102,7 +102,8 @@ function start_tip() {
         } else {
             var httpsOptions = {
                 key: fs.readFileSync(path.join('/ssl', process.env.SSL_KEY)),
-                cert: fs.readFileSync(path.join('/ssl', process.env.SSL_CERT))
+                cert: fs.readFileSync(path.join('/ssl', process.env.SSL_CERT)),
+                ca: fs.readFileSync(path.join('/ssl', process.env.SSL_CA_CERT))
             };
 
             var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function () {

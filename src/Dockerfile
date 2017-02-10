@@ -4,6 +4,7 @@ ARG TIP_PORT
 ENV PORT $TIP_PORT
 ENV SSL_KEY "tip.key"
 ENV SSL_CERT "tip.crt"
+ENV SSL_CA_CERT "ca.crt
 ENV USE_HTTP 0
 
 # Create app directory

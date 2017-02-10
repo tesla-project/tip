@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "description": "TeSLA Identity Provider",
   "author": "Xavier Baró <xbaro@uoc.edu>",
+  "repository": "https://git.tesla-project.eu/tesla/tip",
   "scripts": {
     "start": "node ./bin/www"
   },
   "dependencies": {
     "body-parser": "~1.16.0",
+    "client-certificate-auth": "^0.3.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.0",
     "email-validator": "^1.0.7",
@@ -21,6 +23,6 @@
   },
   "apidoc": {
     "title": "TeSLA Identity Provider",
-    "url": "https://git.tesla-project.eu/tesla/tip"
+    "url": "https://tip.demo.tesla-project.eu/"
   }
 }
