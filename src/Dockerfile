@@ -6,6 +6,10 @@ ENV SSL_KEY "tip.key"
 ENV SSL_CERT "tip.crt"
 ENV SSL_CA_CERT "ca.crt
 ENV USE_HTTP 0
+ENV LOGS_FOLDER "/log"
+
+# Create logs folder
+RUN mkdir -p $LOGS_FOLDER
 
 # Create app directory
 RUN mkdir -p /usr/src/app

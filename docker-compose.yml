@@ -23,6 +23,7 @@ services:
       - tip-internal-network
     volumes:
       - ./src/ssl:/ssl
+      - ./logs:/log
 
   tip-db:
     container_name: 'tip-db'

@@ -84,6 +84,13 @@ function onListening() {
   console.log('Listening on ' + bind);
 }
 
+var access = fs.createWriteStream(process.env.LOGS_FOLDER + '/tip.access.log', { flags: 'a' })
+      , error = fs.createWriteStream(process.env.LOGS_FOLDER + '/tip.error.log', { flags: 'a' });
+
+// redirect stdout / stderr
+process.stdout.pipe(access);
+process.stderr.pipe(error);
+
 // Wait for DB to be ready
 setTimeout(start_tip, 10000);
 
