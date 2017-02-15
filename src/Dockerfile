@@ -1,12 +1,13 @@
 FROM node:boron
 
-ARG TIP_PORT
+ARG TIP_PORT=443
 ENV PORT $TIP_PORT
 ENV SSL_KEY "tip.key"
 ENV SSL_CERT "tip.crt"
 ENV SSL_CA_CERT "ca.crt"
+ENV SSL_PATH "/ssl"
 ENV USE_HTTP 0
-ENV LOGS_FOLDER "/log"
+ENV LOGS_FOLDER "/logs"
 
 # Create logs folder
 RUN mkdir -p $LOGS_FOLDER

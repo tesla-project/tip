@@ -4,7 +4,7 @@ var models = require('../models');
 var validator = require("email-validator");
 
 /**
- * @api {POST} /user/id Get the TeSLA ID for the given user.
+ * @api {POST} /users/id Get the TeSLA ID for the given user.
  * @apiName GetUser
  * @apiGroup User
  *
@@ -16,6 +16,17 @@ var validator = require("email-validator");
  * @apiSuccess {Date} updatedAt TeSLA ID last update date.
  *
  * @apiError InvalidMailFormat
+ *
+ * @apiExample {curl} Example usage:
+ *     curl --request POST --url https://tip.test.tesla-project.eu/users/id --header 'content-type: application/json' --data '{"mail": "xbaro@uoc.edu"}'
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "tesla_id": "9cd125c3-badb-4aa7-b694-321e0d76858f",
+ *       "email": "xbaro@uoc.edu",
+ *       "createdAt": "2017-02-09T21:06:51.215Z",
+ *       "updatedAt": "2017-02-09T21:06:51.215Z"
+ *     }
  */
 router.post('/id', function(req, res, next) {
     var mail = req.body.mail;

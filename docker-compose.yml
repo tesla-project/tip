@@ -3,8 +3,6 @@ services:
   tip:
     build:
       context: ./src
-      args:
-        TIP_PORT: ${TIP_PORT}
     environment:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
@@ -12,14 +10,23 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: ${DB_HOST}
       DB_SCHEMA: ${DB_SCHEMA}
+      LOGS_FOLDER: ${TIP_LOGS_FOLDER}
       PORT: ${TIP_PORT}
+      SSL_PATH: ${TIP_SSL_PATH}
+      SSL_KEY: ${TIP_SSL_KEY}
+      SSL_CERT: ${TIP_SSL_CERT}
+      SSL_CA_CERT: ${TIP_SSL_CA_CERT}
+
     depends_on:
      - "tip-db"
     volumes:
-      - ./logs:/log
-
+      - ./logs:/logs
+    ports:
+      - 8445:443
   tip-db:
     image: postgres
+    ports:
+    - 6435:5432
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USER}
