@@ -5,7 +5,6 @@ var path      = require("path");
 var Sequelize = require("sequelize");
 var env       = process.env.NODE_ENV || "development";
 var db        = {};
-const uuidV4 = require('uuid/v4');
 
 var db_config = {
     "username": process.env.DB_USER,
@@ -38,13 +37,20 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 db.getTeslaID = function(email, callback) {
+  db.TeslaID.findOne({ where: { email: email}}).then(callback);
+};
+
+db.getkeys = function(tesla_id, callback) {
+  db.TeslaID.findOne({ where: { tesla_id: tesla_id}}).then(callback);
+};
+
+db.createTeslaID = function(tesla_id, email, public_key, private_key, callback) {
   db.TeslaID.findOne({ where: { email: email}}).then(
       function(data) {
           if (data) {
-            callback(data);
+              callback(null);
           } else {
-              var new_val = uuidV4();
-              db.TeslaID.create({tesla_id: new_val, email:email}).then(
+              db.TeslaID.create({tesla_id: tesla_id, email:email, public_key: public_key, private_key: private_key}).then(
                   function (data) {
                       callback(data)
                   }
