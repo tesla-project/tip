@@ -68,8 +68,8 @@ router.post('/id', function(req, res, next) {
                 // Generate a key pair
                 var keys = forge.pki.rsa.generateKeyPair(2048);
 
-                var public_key=keys.publicKey;
-                var private_key=keys.privateKey;
+                var public_key=forge.pki.publicKeyToPem(keys.publicKey);
+                var private_key=forge.pki.privateKeyToPem(keys.privateKey);
 
                 // TODO: Create a CSR and send to the CA
 
@@ -149,17 +149,14 @@ router.post('/token', function(req, res, next) {
             };
             var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
             var unsigned_token = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(payload));
-            var private_key = data.private_key;
-            var tmp = forge.pki.privateKeyToAsn1(private_key);
-            var sign = null;
+            var private_key = forge.pki.privateKeyFromPem(data.private_key.toString());
             if(header.alg == "RS256") {
-                sign = crypto.createSign('RSA-SHA256');
+                var md = forge.md.sha256.create();
+                md.update(unsigned_token);
+                signature = forge.util.encode64(private_key.sign(md));
             } else if(header.alg == "ES256") {
                 // TODO: Check ecdsa
-                sign = crypto.createSign('RSA-SHA256');
             }
-            sign.update(unsigned_token);
-            var signature = sign.sign(private_key).toString('base64');
             var token = unsigned_token + "." + signature;
             var token_data = {
                 "token": token
@@ -177,23 +174,24 @@ router.post('/validate', function(req, res, next) {
     var token_parts = token.split('.');
     var header = JSON.parse(base64url.decode(token_parts[0]));
     var payload = JSON.parse(base64url.decode(token_parts[1]));
-    var signature = base64url.decode(token_parts[2]);
+    var signature = forge.util.decode64(token_parts[2]);
 
     // Check if tesla_id exists
     models.getkeys(payload.sub, function(data){
         if(data) {
-            var public_key = data.public_key;
-            var verify = null;
+            var public_key = forge.pki.publicKeyFromPem(data.public_key.toString());
+            var verified = false;
+            var md = forge.md.sha256.create();
+            md.update(token_parts[0] + "." + token_parts[1]);
             if(header.alg == "RS256") {
-                verify = crypto.createVerify('RSA-SHA256');
+                verified = public_key.verify(md.digest().bytes(), signature);
             } else if(header.alg == "ES256") {
                 // TODO: Check ecdsa
-                verify = crypto.createVerify('RSA-SHA256');
             }
-            verify.update(token_parts[0] + "." + token_parts[1]);
 
             var data = {
-                "valid": verify.verify(public_key, signature, 'base64')
+                "valid": verified,
+                "expired": new Date() > new Date(payload.exp)
             };
 
             res.send(data);
