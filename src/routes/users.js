@@ -150,6 +150,7 @@ router.post('/token', function(req, res, next) {
             var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
             var unsigned_token = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(payload));
             var private_key = data.private_key;
+            var tmp = forge.pki.privateKeyToAsn1(private_key);
             var sign = null;
             if(header.alg == "RS256") {
                 sign = crypto.createSign('RSA-SHA256');
