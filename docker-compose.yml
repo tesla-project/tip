@@ -16,6 +16,10 @@ services:
       SSL_KEY: ${TIP_SSL_KEY}
       SSL_CERT: ${TIP_SSL_CERT}
       SSL_CA_CERT: ${TIP_SSL_CA_CERT}
+      TOKEN_ISSUER: ${TIP_ISSUE_NAME}
+      AUTH_REQUESTS: ${TIP_AUTH_REQUESTS}
+      TEP_ADDRESS: ${TEP_ADDRESS}
+      SEND_PUBLIC_KEY: ${TIP_SEND_PUBLIC_KEY}
 
     depends_on:
      - "tip-db"

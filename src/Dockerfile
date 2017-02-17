@@ -8,6 +8,9 @@ ENV SSL_CA_CERT "ca.crt"
 ENV SSL_PATH "/ssl"
 ENV USE_HTTP 0
 ENV LOGS_FOLDER "/logs"
+ENV TOKEN_ISSUER "tip-test"
+ENV AUTH_REQUESTS 1
+ENV TEP_ADDRESS "https://tep"
 
 # Create logs folder
 RUN mkdir -p $LOGS_FOLDER

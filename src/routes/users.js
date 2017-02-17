@@ -8,13 +8,18 @@ var fs = require('fs');
 var path = require('path');
 var forge = require('node-forge');
 const uuidV4 = require('uuid/v4');
+var clientCertificateAuth = require('client-certificate-auth');
 
+function check_plugin_cert(cert) {
+    return cert.subject.CN === 'TEP';
+}
 
+// Create the payload for a token
 function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity) {
 
     var payload = {
         //
-        "iss": "tip-test",  // issuer
+        "iss": process.env.TOKEN_ISSUER,  // issuer
         "exp": new Date(new Date().getTime()+validity), // expiration time
         "iat": new Date(), // issued at
         "sub": tesla_id, // subject
@@ -25,9 +30,68 @@ function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, va
     return payload;
 }
 
+// Create a Certificate Signature Request (CSR)
+function getCSR(keys, CN, country, state, locality, organization, OU) {
+    var csr = forge.pki.createCertificationRequest();
+    csr.publicKey = keys.publicKey;
+    csr.setSubject(
+        [{
+            name: 'commonName',
+            value: CN
+        }, {
+            name: 'countryName',
+            value: country
+        }, {
+            shortName: 'ST',
+            value: state
+        }, {
+            name: 'localityName',
+            value: locality
+        }, {
+            name: 'organizationName',
+            value: organization
+        }, {
+            shortName: 'OU',
+            value: OU
+        }]
+    );
+
+    /*
+    // set (optional) attributes
+    csr.setAttributes(
+        [{
+            name: 'challengePassword',
+            value: 'password'
+        }, {
+            name: 'unstructuredName',
+            value: 'My Company, Inc.'
+        }, {
+            name: 'extensionRequest',
+            extensions: [{
+                name: 'subjectAltName',
+                altNames: [{
+                    // 2 is DNS type
+                    type: 2,
+                    value: 'test.domain.com'
+                }, {
+                    type: 2,
+                    value: 'other.domain.com'
+                }, {
+                    type: 2,
+                    value: 'www.domain.net'
+                }]
+            }]
+        }]
+    );
+    */
+    // sign certification request
+    csr.sign(keys.privateKey);
+
+    return csr;
+}
 
 /**
- * @api {POST} /users/id Get the TeSLA ID for the given user.
+ * @api {POST} /users/id Get the TeSLA ID for the given user. Using RFC4122 v4
  * @apiName GetUser
  * @apiGroup Users
  *
@@ -40,6 +104,10 @@ function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, va
  *
  * @apiError InvalidMailFormat Provided mail is not valid
  * @apiError InvalidCertificates Error creating user certificates
+ * @apiError InvalidPluginCertificate Provided certificate by Plugin cannot be validated
+ * @apiError TEPConnectionFailed Cannot connect to the TEP
+ * @apiError TEPCertificateError TEP certificate cannot be validated
+ * @apiError TEPKeySharingError Error while sending the public key to TEP
  *
  * @apiExample {curl} Example usage:
  *     curl --request POST --url https://tip.test.tesla-project.eu/users/id --header 'content-type: application/json' --data '{"mail": "xbaro@uoc.edu"}'
@@ -51,7 +119,18 @@ function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, va
  *       "updatedAt": "2017-02-09T21:06:51.215Z"
  *     }
  */
-router.post('/id', function(req, res, next) {
+
+var use_auth=null;
+
+if (process.env.AUTH_REQUESTS=="1" || process.env.AUTH_REQUESTS==1){
+    use_auth=clientCertificateAuth(check_plugin_cert);
+} else {
+    use_auth=function always_auth(req, res, next) {
+        return next();
+    }
+}
+
+router.post('/id', use_auth, function(req, res, next) {
     var mail = req.body.mail;
     if(validator.validate(mail)) {
         models.getTeslaID(mail, function (data) {
@@ -66,7 +145,7 @@ router.post('/id', function(req, res, next) {
                 // Create a new TeSLA ID
                 var tesla_id = uuidV4();
                 // Generate a key pair
-                forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
+                forge.pki.rsa.generateKeyPair({bits: 4096, workers: 2}, function(err, keys) {
                     if (err) {
                          res.status(401).send({ error: "InvalidCertificates" });
                          return;
@@ -74,7 +153,14 @@ router.post('/id', function(req, res, next) {
                     var public_key=forge.pki.publicKeyToPem(keys.publicKey);
                     var private_key=forge.pki.privateKeyToPem(keys.privateKey);
 
+                    // Create a CSR and send it to CA
+                    var tip_key = forge.pki.publicKeyFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
+                    //var csr = getCSR(keys, tesla_id, tip_contry, tip_state, tip_locality, tip_organization, "TIP");
+
                     // TODO: Create a CSR and send to the CA
+
+                    // Send the public key or certificate to TEP
+                    //sendPublicKey();
 
                     // Add information to the table
                     models.createTeslaID(tesla_id, mail, public_key, private_key, function(data) {
@@ -97,7 +183,7 @@ router.post('/id', function(req, res, next) {
 
 
 /**
- * @api {POST} /users/token Get a token for a user and activity. It can be used to authenticate with TEP
+ * @api {POST} /users/token Get a token for a user and activity. It can be used to authenticate with TEP. Using RFC7519.
  * @apiName GetToken
  * @apiGroup Users
  *
@@ -118,6 +204,7 @@ router.post('/id', function(req, res, next) {
  * @apiError CertificateNotFound There are no certificate for this user in the TIP.
  * @apiError InvalidCertificate The certificate for this user is not valid.
  * @apiError InvalidValidity The validity is incorrect. Must be a value between 1 and 900(15 minutes) seconds.
+ * @apiError InvalidPluginCertificate Provided certificate by Plugin cannot be validated
  *
  * @apiExample {curl} Example usage for enrollment:
  *     curl --request POST --url https://tip.test.tesla-project.eu/users/token --header 'content-type: application/json' --data '{"tesla_id": "9cd125c3-badb-4aa7-b694-321e0d76858f", "vle_id": , "instrument_list": [1, 3, 6], "mode": "enrollment" }'
@@ -208,7 +295,7 @@ router.post('/token', function(req, res, next) {
 });
 
 /**
- * @api {POST} /users/validate Validate a token
+ * @api {POST} /users/validate Validate a token. Using RFC7519.
  * @apiName ValidateToken
  * @apiGroup Users
  *
@@ -218,9 +305,10 @@ router.post('/token', function(req, res, next) {
  * @apiSuccess {Boolean} expired True if the token is expired, or false if it valid
  *
  * @apiError InvalidTeslaId Invalid TeSLA ID in the token.
- * @apiError CertificateNotFound There are no certificate for the user in the token
+ * @apiError CertificateNotFound There are no certificate for the user in the token.
  * @apiError InvalidCertificate The certificate for the user in the token is not valid.
  * @apiError InvalidAlgorithm The algorithm used by the token is not supported.
+ * @apiError TEPCertificateError TEP certificate cannot be validated.
  *
  * @apiExample {curl} Example usage:
  *     curl --request POST --url https://tip.test.tesla-project.eu/users/token --header 'content-type: application/json' --data '{"token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0aXAtdGVzdCIsImV4cCI6IjIwMTctMDItMTZUMjI6MTc6NDcuODYyWiIsImlhdCI6IjIwMTctMDItMTZUMjI6MTI6NDcuODYyWiIsInN1YiI6IjRlOTkzNjIyLTdlZmQtNGMyMS1iNmQ3LTgyYjgzYTEyYWUyYiIsInZsZSI6MywibW9kZSI6ImVucm9sbG1lbnQiLCJhY3QiOm51bGx9.d1pvlNqoqVjQ8FacPcYJIBysa84O+B6mmaOdHpgJ0kmgTvvTil5oGvH3nGxFUkR7O+f4XiYJhzj/pM59YCjQa0j0HVsG9P4Ij0QDCVBZPEpnQTnFa62C/ox3nu/EWjbOBCY+LwuNGXzkdeaGm9a9dhejrKLbBQJ5Vxw64ST6iMweNxSHGELWQlFkt38R7PbzhHvznFWfnmBRlRXCOyZ3Sk1piv/dpkkwZYDtMl26oJMPr1k+Kvb8ywOylaW9fO89In7O7ZXxW4uE92+8VDHUW98hJXq0EKFmP8ACA51uy6tPVNbw7fQryOsFkj525hS1nY7MTXBxBzp5Eg4HkJSDRw=="}'
@@ -278,5 +366,56 @@ router.post('/validate', function(req, res, next) {
         }
     });
 });
+
+function getCert(tesla_id, keys) {
+    var tip_cert = forge.pki.certificateFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
+    var csr_sample = forge.pki.certificationRequestFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, 'sample.csr')));
+
+    var tip_contry=tip_cert.subject.getField('C');
+    var tip_state=tip_cert.subject.getField('ST');
+    var tip_locality=tip_cert.subject.getField('L');
+    var tip_organization=tip_cert.subject.getField('OU');
+    var cn=tip_cert.subject.getField('CN');
+
+    var csr = getCSR(keys, tesla_id, tip_contry, tip_state, tip_locality, tip_organization, "TIP");
+
+    var https = require('https');
+
+    var options = {
+        host: 'tesla-universities.telecom-sudparis.eu',
+        port: 2001,
+        path: '/',
+        method: 'GET',
+        key: fs.readFileSync(path.join(process.env.SSL_PATH, 'xbarosole.key.pem')),
+        cert: fs.readFileSync(path.join(process.env.SSL_PATH, 'xbarosole.cert.pem')),
+        ca: null
+    };
+
+    var req = https.request(options, function(res) {
+        console.log("statusCode: ", res.statusCode);
+        console.log("headers: ", res.headers);
+
+        res.on('data', function(d) {
+            process.stdout.write(d);
+        });
+    });
+    req.end();
+
+    req.on('error', function(e) {
+        console.error(e);
+    });
+}
+
+router.get('/test_csr', function(req, res, next) {
+    var tesla_id = uuidV4();
+    forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
+        if (err) {
+            res.status(401).send({error: "InvalidCertificates"});
+            return;
+        }
+        var data = getCert(tesla_id, keys);
+    });
+});
+
 
 module.exports = router;

@@ -8,7 +8,7 @@ var app = require('../app');
 var debug = require('debug')('tip:server');
 var http = require('http');
 var https = require('https'), fs=require('fs'), path = require('path');
-var rfs = require('rotating-file-stream')
+var rfs = require('rotating-file-stream');
 var env = process.env.NODE_ENV || "development";
 
 /**
@@ -105,7 +105,9 @@ function start_tip() {
             var httpsOptions = {
                 key: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_KEY)),
                 cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)),
-                ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CA_CERT))
+                ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CA_CERT)),
+                requestCert: process.env.AUTH_REQUESTS=="1",
+                rejectUnauthorized: false
             };
 
             var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function () {
