@@ -1,0 +1,75 @@
+before_script:
+  - echo "**** START TEST ****"
+  - ssh-agent bash -c 'ssh-add /home/gitlab-runner/.ssh/id_rsa; git clone ssh://git@git.tesla-project.eu:55000/tesla/tesla.git'
+  - cd tesla
+  - git submodule init && git submodule update && git submodule foreach git pull origin master
+  - mkdir -p logs/tmp
+  - cd ..
+  - rm -rf test
+  - mv tesla/test .
+after_script:
+  - cd tesla/bin && ./shutdown.sh
+  - echo "**** END TEST ****"
+  
+stages:
+  - test
+  - build
+testsT1:
+  stage: test
+  script:
+    #- cd tesla/bin && ./startup_test.sh ${CI_PROJECT_NAME} 'T1'
+    #- echo $GITLAB_USER_EMAIL
+    #- cd .. && cd ..
+    - echo "todo T1"
+
+  only:
+    - master
+  allow_failure: false
+  
+testsT2:
+  stage: test
+  script:
+    - echo "todo T2"
+  only:
+    - test
+  allow_failure: false
+
+testsT3:
+  stage: test
+  script:
+    - echo "todo T3"
+  only:
+    - production
+  allow_failure: false
+
+build_latest:
+  stage: build
+  script:
+    - cd tesla/bin && ./startup_test.sh ${CI_PROJECT_NAME} 'T1'
+    - echo $GITLAB_USER_EMAIL
+    - cd .. && cd ..  
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker tag tesla_${CI_PROJECT_NAME} $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:latest-service
+    - docker push $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:latest-service
+  only:
+    - master
+
+build_test:
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker pull $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:latest-service
+    - docker tag tesla_${CI_PROJECT_NAME} $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:test-service
+    - docker push $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:test-service
+  only:
+    - test
+
+build_production:
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker pull $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:test-service
+    - docker tag tesla_${CI_PROJECT_NAME} $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:production-service
+    - docker push $CI_REGISTRY/tesla/${CI_PROJECT_NAME}:production-service
+  only:
+    - production
