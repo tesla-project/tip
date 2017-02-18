@@ -5,7 +5,7 @@
 ## Synopsis
 The Identity Provider is a module that must be deployed at the institution side. It will manage the anonimization of the data captured by TeSLA and to provide the tokens used to athenticate the External Tools with the TEP.
 
-### Standards
+## Standards
 
 TIP uses the following standards:
 
@@ -18,12 +18,12 @@ TIP uses the following standards:
 
 The environment variables used by TIP are:
 
-# General
+### General
 
     * PORT: Port where TIP will listen.
     * LOGS_FOLDER: Folder used to store all the logs of the application.
     
-# Database
+### Database
 
     * DB_HOST: Database host
     * DB_PORT: Database port 
@@ -32,7 +32,7 @@ The environment variables used by TIP are:
 	* DB_NAME: Database name
 	* DB_SCHEMA: Database schema (only used when database is PostreSQL
 	
-# Security
+### Security
 	
 	* USE_HTTP: If "1", TIP will listen for http requests. Otherwhise, HTTPS requests are expected. Disabling HTTPS may cause problems with authentication.
     * SSL_PATH: Path where required certificates and keys are stored.
@@ -41,7 +41,7 @@ The environment variables used by TIP are:
     * SSL_CA_CERT: Filename of the CA trusted chain used to validate the certificates. This file must exist in SSL_PATH.
     * AUTH_REQUESTS: Enable or disable authentication of incoming requests. If "1", the clients must provide a valid certificate for a Plugin in the institution of the TIP (see access restrictions). If "0", no authentication is performed.
     
-# Tokens
+### Tokens
     
     * TOKEN_ISSUER: Name to use as issuer of the issued tokens
     * TEP_ADDRESS: Full address with protocol and port for the TEP. Is used to send the public keys for token signature validation.
