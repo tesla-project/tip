@@ -11,7 +11,18 @@ const uuidV4 = require('uuid/v4');
 var clientCertificateAuth = require('client-certificate-auth');
 
 function check_plugin_cert(cert) {
-    return cert.subject.CN === 'TEP';
+    var cn_parts = cert.subject.CN.split('.');
+    var tip_cert = forge.pki.certificateFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
+    if (cn_parts[0]!="plugin") {
+        console.error('Invalid CN. Do not corresponds to a plugin');
+        return false;
+    }
+    var tip_organization=tip_cert.subject.getField('O').value;
+    if (cert.subject.O!=tip_organization) {
+        console.error('Invalid OU. TIP organization and plugin organizations are not the same.');
+        return false;
+    }
+    return true;
 }
 
 // Create the payload for a token

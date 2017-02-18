@@ -20,7 +20,6 @@ services:
       AUTH_REQUESTS: ${TIP_AUTH_REQUESTS}
       TEP_ADDRESS: ${TEP_ADDRESS}
       SEND_PUBLIC_KEY: ${TIP_SEND_PUBLIC_KEY}
-
     depends_on:
      - "tip-db"
     volumes:
