@@ -22,6 +22,7 @@ The environment variables used by TIP are:
 
     * PORT: Port where TIP will listen.
     * LOGS_FOLDER: Folder used to store all the logs of the application.
+    * NUM_THREADS: Number of instances to execute (-1 run one per CPU).
     
 ### Database
 

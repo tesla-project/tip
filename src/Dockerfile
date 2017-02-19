@@ -11,6 +11,8 @@ ENV LOGS_FOLDER "/logs"
 ENV TOKEN_ISSUER "tip-test"
 ENV AUTH_REQUESTS 1
 ENV TEP_ADDRESS "https://tep"
+ENV NUM_THREADS 1
+ENV MAX_MEM_THREAD 512
 
 # Create logs folder
 RUN mkdir -p $LOGS_FOLDER
