@@ -4,12 +4,13 @@ var favicon = require('serve-favicon');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var users = require('./routes/users');
+var status = require('./routes/status');
 
 var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 var logger = require("./logger");
 
@@ -23,6 +24,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'doc')));
 
 app.use('/users', users);
+app.use('/status', status);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
