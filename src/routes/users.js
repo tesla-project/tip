@@ -165,7 +165,7 @@ router.post('/id', use_auth, function(req, res, next) {
                     var private_key=forge.pki.privateKeyToPem(keys.privateKey);
 
                     // Create a CSR and send it to CA
-                    var tip_key = forge.pki.publicKeyFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
+                    //var tip_key = forge.pki.publicKeyFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
                     //var csr = getCSR(keys, tesla_id, tip_contry, tip_state, tip_locality, tip_organization, "TIP");
 
                     // TODO: Create a CSR and send to the CA
