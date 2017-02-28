@@ -10,6 +10,7 @@ var http = require('http');
 var https = require('https'), fs=require('fs'), path = require('path');
 var rfs = require('rotating-file-stream');
 var env = process.env.NODE_ENV || "development";
+var logger = require("../logger");
 
 /**
  * Get port from environment and store in Express.
@@ -116,5 +117,8 @@ function start_tip() {
                 server_ssl.on('listening', onListening);
             });
         }
+    }, function(error) {
+        logger.exitAfterFlush(1);
+        logger.error(error.toString(), error);
     });
 }

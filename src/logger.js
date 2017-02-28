@@ -13,13 +13,6 @@ if (process.env.LOGS_FOLDER) {
 
 // ensure log directory exists
 fs.existsSync(logFolder) || fs.mkdirSync(logFolder);
-/*
-// create a rotating write stream
-var tipLogStream = rfs('tip.log', {
-  interval: '1d', // rotate daily
-  path: logFolder
-});
-*/
 console.log('TeSLA Identity Provider: Logs stored at folder ' + logFolder);
 
 var file_access = path.join(logFolder, 'tip.access.log');
@@ -33,8 +26,8 @@ var logger = new winston.Logger({
             filename: file_access,
             handleExceptions: true,
             json: true,
-            maxsize: 5242880, //5MB
-            maxFiles: 5,
+            maxsize: process.env.LOG_ROTATE_MAX_BYTES,
+            maxFiles: process.env.LOG_ROTATE_BACKUP_COUNT,
             colorize: false
         }),
         new winston.transports.File({
@@ -43,8 +36,8 @@ var logger = new winston.Logger({
             filename: file_error,
             handleExceptions: true,
             json: true,
-            maxsize: 5242880, //5MB
-            maxFiles: 5,
+            maxsize: process.env.LOG_ROTATE_MAX_BYTES,
+            maxFiles: process.env.LOG_ROTATE_BACKUP_COUNT,
             colorize: false
         }),
         new winston.transports.Console({
@@ -63,3 +56,10 @@ module.exports.stream = {
         logger.info(message);
     }
 };
+
+module.exports.exitAfterFlush = function(code) {
+    logger.transports['error-file'].on('flush', function() {
+        process.exit(code);
+    });
+};
+

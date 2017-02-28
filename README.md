@@ -23,6 +23,9 @@ The environment variables used by TIP are:
     * PORT: Port where TIP will listen.
     * LOGS_FOLDER: Folder used to store all the logs of the application.
     * NUM_THREADS: Number of instances to execute (-1 run one per CPU).
+    * MAX_MEM_THREAD: Maximum memory allowed for each thread. Once achieved, thread will be restarted.
+    * LOG_ROTATE_MAX_BYTES: Maximum size in bytes of log files before rotate. (default 5242880)
+    * LOG_ROTATE_BACKUP_COUNT: Number of log files to store as backup. Older files will be removed.
     
 ### Database
 

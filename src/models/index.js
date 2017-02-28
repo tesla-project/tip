@@ -4,6 +4,7 @@ var fs        = require("fs");
 var path      = require("path");
 var Sequelize = require("sequelize");
 var env       = process.env.NODE_ENV || "development";
+var logger = require("../logger");
 var db        = {};
 
 var db_config = {
@@ -12,9 +13,9 @@ var db_config = {
     "database": process.env.DB_NAME,
     "host": process.env.DB_HOST,
     "port": process.env.DB_PORT,
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "logging": logger.error
   };
-
 var sequelize = new Sequelize(db_config.database, db_config.username, db_config.password, db_config);
 
 fs

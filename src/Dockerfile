@@ -2,9 +2,9 @@ FROM node:boron
 
 ARG TIP_PORT=443
 ENV PORT $TIP_PORT
-ENV SSL_KEY "tip.key"
-ENV SSL_CERT "tip.crt"
-ENV SSL_CA_CERT "ca.crt"
+ENV SSL_KEY "tip.uoc.tesla-project.eu.key.pem"
+ENV SSL_CERT "tip.uoc.tesla-project.eu.crt"
+ENV SSL_CA_CERT "ca.cert.pem"
 ENV SSL_PATH "/ssl"
 ENV USE_HTTP 0
 ENV LOGS_FOLDER "/logs"
@@ -13,6 +13,8 @@ ENV AUTH_REQUESTS 1
 ENV TEP_ADDRESS "https://tep"
 ENV NUM_THREADS 1
 ENV MAX_MEM_THREAD 512
+ENV LOG_ROTATE_MAX_BYTES 5242880 # 5Mb
+ENV LOG_ROTATE_BACKUP_COUNT 5
 
 # Create logs folder
 RUN mkdir -p $LOGS_FOLDER
