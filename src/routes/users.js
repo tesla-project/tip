@@ -329,7 +329,7 @@ router.post('/token', function(req, res, next) {
             };
 
             // Update the public key or certificate to TEP
-            tep_utils.send_user_key(tesla_id, 'RSA', public_key, function(error, response) {
+            tep_utils.send_user_key(tesla_id, 'RSA', data.public_key.toString(), function(error, response) {
                 if (!error && response.statusCode == 200) {
                     res.send(token_data);
                 } else if(process.env.TEP_ENFORCE_KEY_SHARING=='1') {

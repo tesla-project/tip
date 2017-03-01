@@ -25,8 +25,13 @@ key_type: "RSA" / "ECDSA"
 
 function get_optons(url, json_data) {
     var options = {
-        url: url,
+        url: url.toString(),
         method: "PUT",
+        //json: true,
+        //headers: {
+        //    "content-type": "application/json",
+        //},
+        //body: json_data,
         json: json_data,
         agentOptions: {
             cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)),
@@ -40,12 +45,12 @@ function get_optons(url, json_data) {
 
 exports.send_user_key = function(tesla_id, algorithm, key, callback) {
 
-    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/addUser');
-    var data = JSON.stringify({
+    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/AddUser');
+    var data = {
         tesla_id: tesla_id,
         public_key: key,
         key_type: algorithm
-    });
+    };
     var options = get_optons(method_url, data);
 
     request(options, function (error, response, body) {
@@ -55,11 +60,11 @@ exports.send_user_key = function(tesla_id, algorithm, key, callback) {
 
 exports.send_key = function(algorithm, key, callback) {
 
-    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/addTipKey');
-    var data = JSON.stringify({
+    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/AddTipKey');
+    var data = {
         public_key: key,
         key_type: algorithm
-    });
+    };
     var options = get_optons(url, data);
 
     request(options, function (error, response, body) {
