@@ -61,12 +61,14 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
+        logger.exitAfterFlush(1);
+        logger.error(bind + ' requires elevated privileges');
+      //process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
+        logger.exitAfterFlush(1);
+        logger.error(bind + ' is already in use');
+      //process.exit(1);
       break;
     default:
       throw error;
@@ -83,7 +85,7 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
-  console.info('Listening on ' + bind);
+  logger.info('Listening on ' + bind);
 
 }
 
@@ -98,7 +100,7 @@ function start_tip() {
          */
         if(process.env.USE_HTTP==1) {
             var server = app.listen(app.get('port'), function () {
-                console.log('TeSLA Identity Provider listening on port ' + server.address().port);
+                logger.log('TeSLA Identity Provider listening on port ' + server.address().port);
                 server.on('error', onError);
                 server.on('listening', onListening);
             });
@@ -112,7 +114,7 @@ function start_tip() {
             };
 
             var server_ssl = https.createServer(httpsOptions, app).listen(app.get('port-ssl'), function () {
-                console.info('TeSLA Identity Provider listening (SSL) on port ' + app.get('port-ssl'));
+                logger.info('TeSLA Identity Provider listening (SSL) on port ' + app.get('port-ssl'));
                 server_ssl.on('error', onError);
                 server_ssl.on('listening', onListening);
             });

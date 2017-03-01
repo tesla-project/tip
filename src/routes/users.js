@@ -9,17 +9,19 @@ var path = require('path');
 var forge = require('node-forge');
 const uuidV4 = require('uuid/v4');
 var clientCertificateAuth = require('client-certificate-auth');
+var tep_utils = require('../lib/tep_utils');
+var logger = require("../logger");
 
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
     var tip_cert = forge.pki.certificateFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
     if (cn_parts[0]!="plugin") {
-        console.error('Invalid CN. Do not corresponds to a plugin');
+        logger.error('Invalid CN. Do not corresponds to a plugin');
         return false;
     }
     var tip_organization=tip_cert.subject.getField('O').value;
     if (cert.subject.O!=tip_organization) {
-        console.error('Invalid OU. TIP organization and plugin organizations are not the same.');
+        logger.error('Invalid OU. TIP organization and plugin organizations are not the same.');
         return false;
     }
     return true;
@@ -116,9 +118,9 @@ function getCSR(keys, CN, country, state, locality, organization, OU) {
  * @apiError InvalidMailFormat Provided mail is not valid
  * @apiError InvalidCertificates Error creating user certificates
  * @apiError InvalidPluginCertificate Provided certificate by Plugin cannot be validated
- * @apiError TEPConnectionFailed Cannot connect to the TEP
- * @apiError TEPCertificateError TEP certificate cannot be validated
- * @apiError TEPKeySharingError Error while sending the public key to TEP
+ * @apiError TEPConnectionFailed Cannot connect to the TEP (only if TEP_ENFORCE_KEY_SHARING is enabled)
+ * @apiError TEPAccessForbidden TEP returned a 403 status code.
+ * @apiError TEPKeySharingError Error while sending the public key to TEP (only if TEP_ENFORCE_KEY_SHARING is enabled)
  *
  * @apiExample {curl} Example usage:
  *     curl --request POST --url https://tip.test.tesla-project.eu/users/id --header 'content-type: application/json' --data '{"mail": "xbaro@uoc.edu"}'
@@ -158,7 +160,7 @@ router.post('/id', use_auth, function(req, res, next) {
                 // Generate a key pair
                 forge.pki.rsa.generateKeyPair({bits: 4096, workers: 2}, function(err, keys) {
                     if (err) {
-                         res.status(401).send({ error: "InvalidCertificates" });
+                         res.status(400).send({ error: "InvalidCertificates" });
                          return;
                     }
                     var public_key=forge.pki.publicKeyToPem(keys.publicKey);
@@ -170,9 +172,6 @@ router.post('/id', use_auth, function(req, res, next) {
 
                     // TODO: Create a CSR and send to the CA
 
-                    // Send the public key or certificate to TEP
-                    //sendPublicKey();
-
                     // Add information to the table
                     models.createTeslaID(tesla_id, mail, public_key, private_key, function(data) {
                         if(data) {
@@ -181,14 +180,36 @@ router.post('/id', use_auth, function(req, res, next) {
                                 "createdAt": data.createdAt,
                                 "updatedAt": data.updatedAt
                             };
-                            res.send(ret_data);
+
+                            // Send the public key or certificate to TEP
+                            tep_utils.send_user_key(tesla_id, 'RSA', public_key, function(error, response) {
+                                if (!error && response.statusCode == 200) {
+                                    res.send(ret_data);
+                                } else if(process.env.TEP_ENFORCE_KEY_SHARING=='1') {
+                                    if(error) {
+                                        logger.error('Error connecting to the TEP.', {error: error});
+                                        res.status(400).send({ error: "TEPConnectionFailed" });
+                                    } else {
+                                        if(response.statusCode==403) {
+                                            logger.error('Status code 403 from TEP.', {response: response});
+                                            res.status(400).send({ error: "TEPAccessForbidden" });
+                                        } else {
+                                            logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
+                                            res.status(400).send({ error: "TEPKeySharingError" });
+                                        }
+                                    }
+                                } else {
+                                    logger.warn('Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {error: error, response: response});
+                                    res.send(ret_data);
+                                }
+                            });
                         }
                     });
                 });
             }
         });
     } else {
-        res.status(401).send({ error: "InvalidMailFormat" });
+        res.status(400).send({ error: "InvalidMailFormat" });
     }
 });
 
@@ -216,6 +237,9 @@ router.post('/id', use_auth, function(req, res, next) {
  * @apiError InvalidCertificate The certificate for this user is not valid.
  * @apiError InvalidValidity The validity is incorrect. Must be a value between 1 and 900(15 minutes) seconds.
  * @apiError InvalidPluginCertificate Provided certificate by Plugin cannot be validated
+ * @apiError TEPConnectionFailed Cannot connect to the TEP (only if TEP_ENFORCE_KEY_SHARING is enabled)
+ * @apiError TEPAccesForbidden TEP returned a 403 status code.
+ * @apiError TEPKeySharingError Error while sending the public key to TEP (only if TEP_ENFORCE_KEY_SHARING is enabled)
  *
  * @apiExample {curl} Example usage for enrollment:
  *     curl --request POST --url https://tip.test.tesla-project.eu/users/token --header 'content-type: application/json' --data '{"tesla_id": "9cd125c3-badb-4aa7-b694-321e0d76858f", "vle_id": , "instrument_list": [1, 3, 6], "mode": "enrollment" }'
@@ -247,22 +271,22 @@ router.post('/token', function(req, res, next) {
         validity = validity_val * 1000;
     }
     if(validity < 1000 || validity > 900000) {
-        res.status(401).send({ error: "InvalidValidity" });
+        res.status(400).send({ error: "InvalidValidity" });
         return;
     }
 
     if(mode!="enrollment" && mode!="validation") {
-        res.status(401).send({ error: "InvalidMode" });
+        res.status(400).send({ error: "InvalidMode" });
         return;
     }
 
     if(!instrument_list || instrument_list.length<=0) {
-        res.status(401).send({ error: "EmptyInstrumentList" });
+        res.status(400).send({ error: "EmptyInstrumentList" });
         return;
     }
 
     if(Math.min.apply(null, instrument_list)<1 || Math.max.apply(null, instrument_list)>7) {
-        res.status(401).send({ error: "InvalidInstrument" });
+        res.status(400).send({ error: "InvalidInstrument" });
         return;
     }
 
@@ -276,29 +300,56 @@ router.post('/token', function(req, res, next) {
             };
             var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
             var unsigned_token = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(payload));
-            if(!data.private_key) {
-                res.status(401).send({ error: "CertificateNotFound" });
+            if(!data.private_key || !data.public_key) {
+                res.status(400).send({ error: "CertificateNotFound" });
                 return;
             }
             var private_key = null;
+            var public_key = null;
             try{
                 private_key = forge.pki.privateKeyFromPem(data.private_key.toString());
+                public_key = forge.pki.publicKeyFromPem(data.public_key.toString());
             } catch (e) {
-                res.status(401).send({ error: "InvalidCertificate" });
+                res.status(400).send({ error: "InvalidCertificate" });
                 return;
             }
+            var key_type = null;
             if(header.alg == "RS256") {
                 var md = forge.md.sha256.create();
                 md.update(unsigned_token);
                 signature = forge.util.encode64(private_key.sign(md));
+                key_type = "RSA";
             } else if(header.alg == "ES256") {
                 // TODO: Use ecdsa
+                key_type = "ECDSA";
             }
             var token = unsigned_token + "." + signature;
             var token_data = {
                 "token": token
             };
-            res.send(token_data);
+
+            // Update the public key or certificate to TEP
+            tep_utils.send_user_key(tesla_id, 'RSA', public_key, function(error, response) {
+                if (!error && response.statusCode == 200) {
+                    res.send(token_data);
+                } else if(process.env.TEP_ENFORCE_KEY_SHARING=='1') {
+                    if(error) {
+                        logger.error('Error connecting to the TEP.', {error: error});
+                        res.status(400).send({ error: "TEPConnectionFailed" });
+                    } else {
+                        if(response.statusCode==403) {
+                            logger.error('Status code 403 from TEP.', {response: response});
+                            res.status(400).send({ error: "TEPAccessForbidden" });
+                        } else {
+                            logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
+                            res.status(400).send({ error: "TEPKeySharingError" });
+                        }
+                    }
+                } else {
+                    logger.log('warn', 'Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {error: error, response: response});
+                    res.send(token_data);
+                }
+            });
         } else {
             res.status(401).send({ error: "InvalidTeslaId" });
         }
@@ -343,13 +394,13 @@ router.post('/validate', function(req, res, next) {
         if(data) {
             var public_key = null;
             if(!data.public_key) {
-                res.status(401).send({ error: "CertificateNotFound" });
+                res.status(400).send({ error: "CertificateNotFound" });
                 return;
             }
             try {
                 public_key = forge.pki.publicKeyFromPem(data.public_key.toString());
             } catch(e) {
-                res.status(401).send({ error: "InvalidCertificate" });
+                res.status(400).send({ error: "InvalidCertificate" });
                 return;
             }
             var verified = false;
@@ -359,10 +410,10 @@ router.post('/validate', function(req, res, next) {
                 verified = public_key.verify(md.digest().bytes(), signature);
             } else if(header.alg == "ES256") {
                 // TODO: Check ecdsa
-                res.status(401).send({ error: "InvalidAlgorithm" });
+                res.status(400).send({ error: "InvalidAlgorithm" });
                 return;
             } else {
-                res.status(401).send({ error: "InvalidAlgorithm" });
+                res.status(400).send({ error: "InvalidAlgorithm" });
                 return;
             }
 
@@ -373,7 +424,7 @@ router.post('/validate', function(req, res, next) {
 
             res.send(data);
         } else {
-            res.status(401).send({ error: "InvalidTeslaId" });
+            res.status(400).send({ error: "InvalidTeslaId" });
         }
     });
 });
@@ -403,8 +454,8 @@ function getCert(tesla_id, keys) {
     };
 
     var req = https.request(options, function(res) {
-        console.log("statusCode: ", res.statusCode);
-        console.log("headers: ", res.headers);
+        logger.log("statusCode: ", res.statusCode);
+        logger.log("headers: ", res.headers);
 
         res.on('data', function(d) {
             process.stdout.write(d);
@@ -413,7 +464,7 @@ function getCert(tesla_id, keys) {
     req.end();
 
     req.on('error', function(e) {
-        console.error(e);
+        logger.error(e);
     });
 }
 
@@ -421,7 +472,7 @@ router.get('/test_csr', function(req, res, next) {
     var tesla_id = uuidV4();
     forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
         if (err) {
-            res.status(401).send({error: "InvalidCertificates"});
+            res.status(400).send({error: "InvalidCertificates"});
             return;
         }
         var data = getCert(tesla_id, keys);

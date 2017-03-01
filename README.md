@@ -49,6 +49,7 @@ The environment variables used by TIP are:
     
     * TOKEN_ISSUER: Name to use as issuer of the issued tokens
     * TEP_ADDRESS: Full address with protocol and port for the TEP. Is used to send the public keys for token signature validation.
+    * TEP_ENFORCE_KEY_SHARING: If enabled, an error is returned if the public key cannot be shared with TEP. Otherwise, only an error is shown on logs.
     * SEND_PUBLIC_KEY: Enable or disable the public key sharing with TEP. If "1", everytime a new key pair for a user is generated for token signature, the publica key will be delivered to TEP. Otherwise, there is no communication with TEP.
 	
 
@@ -89,7 +90,7 @@ Following are the remaining tasks for TIP:
 - [ ] Basic tests in the TIP repository to be run on master branch
 - [ ] Authentication tests as part of the TeSLA integration.
 - [ ] Implement token signature based on elliptical codes.
-
+- [ ] Add license to TIP software.
 
 ---
 

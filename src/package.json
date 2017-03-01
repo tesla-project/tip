@@ -1,6 +1,6 @@
 {
   "name": "tip",
-  "version": "0.2.0",
+  "version": "0.1.2",
   "description": "TeSLA Identity Provider",
   "author": "Xavier Baró <xbaro@uoc.edu>",
   "repository": "https://git.tesla-project.eu/tesla/tip",
@@ -21,6 +21,7 @@
     "pg": "^6.1.2",
     "pm2": "^2.4.0",
     "pug": "^2.0.0-beta11",
+    "request": "^2.79.0",
     "rotating-file-stream": "^1.1.9",
     "sequelize": "^3.30.2",
     "serve-favicon": "~2.3.2",

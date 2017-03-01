@@ -14,7 +14,7 @@ var db_config = {
     "host": process.env.DB_HOST,
     "port": process.env.DB_PORT,
     "dialect": "postgres",
-    "logging": logger.error
+    "logging": logger.info
   };
 var sequelize = new Sequelize(db_config.database, db_config.username, db_config.password, db_config);
 
