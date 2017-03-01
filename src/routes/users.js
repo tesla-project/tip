@@ -158,7 +158,7 @@ router.post('/id', use_auth, function(req, res, next) {
                 // Create a new TeSLA ID
                 var tesla_id = uuidV4();
                 // Generate a key pair
-                forge.pki.rsa.generateKeyPair({bits: 4096, workers: 2}, function(err, keys) {
+                forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
                     if (err) {
                          res.status(400).send({ error: "InvalidCertificates" });
                          return;
