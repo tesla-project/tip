@@ -1,6 +1,6 @@
 {
   "name": "tip",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TeSLA Identity Provider",
   "author": "Xavier Baró <xbaro@uoc.edu>",
   "repository": "https://git.tesla-project.eu/tesla/tip",
