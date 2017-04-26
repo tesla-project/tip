@@ -70,9 +70,15 @@ db.get_key_from_pool = function(pool_size, callback) {
           } else {
               var idx = Math.floor(Math.random() * (data.count));
               try {
-                  var public_key = data.rows[idx].public_key;
-                  var private_key = data.rows[idx].private_key;
-                  callback(public_key, private_key, data.count);
+                  if(data.rows[idx]) {
+                      var public_key = data.rows[idx].public_key;
+                      var private_key = data.rows[idx].private_key;
+                      callback(public_key, private_key, data.count);
+                  } else {
+                      var public_key = data.rows[0].public_key;
+                      var private_key = data.rows[0].private_key;
+                      callback(public_key, private_key, data.count);
+                  }
               } catch(err) {
                   callback(null, null, 0);
               }
