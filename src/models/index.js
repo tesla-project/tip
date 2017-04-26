@@ -68,7 +68,7 @@ db.get_key_from_pool = function(pool_size, callback) {
           if (data.count==0) {
               callback(null, null, 0);
           } else {
-              var idx = Math.floor(Math.random() * (data.count));
+              var idx = Math.floor(Math.random() * (Math.min(data.count, pool_size)));
               try {
                   if(data.rows[idx]) {
                       var public_key = data.rows[idx].public_key;
