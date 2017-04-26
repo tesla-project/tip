@@ -44,6 +44,8 @@ The environment variables used by TIP are:
     * SSL_CERT: Filename of the TIP certificate. This file must exist in SSL_PATH.
     * SSL_CA_CERT: Filename of the CA trusted chain used to validate the certificates. This file must exist in SSL_PATH.
     * AUTH_REQUESTS: Enable or disable authentication of incoming requests. If "1", the clients must provide a valid certificate for a Plugin in the institution of the TIP (see access restrictions). If "0", no authentication is performed.
+    * KEY_POOL_ENABLED: Enable or disable the use of a pool of keys. When enabled, the key is taken from a random position of a pool of KEY_POOL_SIZE keys instead of generating a new one (performance increase). Otherwise a new key is always generated for each new user. 
+    * KEY_POOL_SIZE: Size of the pool of keys.
     
 ### Tokens
     

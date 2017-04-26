@@ -43,6 +43,21 @@ function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, va
     return payload;
 }
 
+function get_keys(callback) {
+    if (process.env.KEY_POOL_ENABLED==1) {
+        models.get_key_from_pool(process.env.KEY_POOL_SIZE, function(public_key, private_key, num_keys) {
+            if(num_keys<process.env.KEY_POOL_SIZE) {
+                forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, callback);
+            } else {
+                keys={publicKey: forge.pki.publicKeyFromPem(public_key.toString()), privateKey: forge.pki.privateKeyFromPem(private_key.toString())};
+                callback(null, keys);
+            }
+        });
+    } else {
+        forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, callback);
+    }
+}
+
 // Create a Certificate Signature Request (CSR)
 function getCSR(keys, CN, country, state, locality, organization, OU) {
     var csr = forge.pki.createCertificationRequest();
@@ -158,7 +173,8 @@ router.post('/id', use_auth, function(req, res, next) {
                 // Create a new TeSLA ID
                 var tesla_id = uuidV4();
                 // Generate a key pair
-                forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
+                //forge.pki.rsa.generateKeyPair({bits: 2048, workers: 2}, function(err, keys) {
+                get_keys(function(err, keys) {
                     if (err) {
                          res.status(400).send({ error: "InvalidCertificates" });
                          return;

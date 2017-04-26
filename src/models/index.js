@@ -60,4 +60,20 @@ db.createTeslaID = function(tesla_id, email, public_key, private_key, callback) 
       });
 };
 
+db.get_key_from_pool = function(pool_size, callback) {
+  db.TeslaID.findAndCountAll({
+      limit: pool_size
+  }).then(
+      function(data) {
+          if (data.count==0) {
+              callback(null, null, 0);
+          } else {
+              var idx = Math.floor(Math.random() * (data.count));
+              var public_key = data.rows[idx].public_key;
+              var private_key = data.rows[idx].private_key;
+              callback(public_key, private_key, data.count);
+          }
+      });
+};
+
 module.exports = db;

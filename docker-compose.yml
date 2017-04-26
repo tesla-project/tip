@@ -21,6 +21,8 @@ services:
       TEP_ADDRESS: ${TEP_ADDRESS}
       SEND_PUBLIC_KEY: ${TIP_SEND_PUBLIC_KEY}
       NUM_THREADS: ${TIP_NUM_THREADS}
+      KEY_POOL_ENABLED: ${TIP_KEY_POOL_ENABLED}
+      TIP_KEY_POOL_SIZE: ${TIP_KEY_POOL_SIZE}
     depends_on:
      - "tip-db"
     volumes:
