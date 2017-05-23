@@ -11,6 +11,7 @@ const uuidV4 = require('uuid/v4');
 var clientCertificateAuth = require('client-certificate-auth');
 var tep_utils = require('../lib/tep_utils');
 var logger = require("../logger");
+var jwt = require('jsonwebtoken');
 
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
@@ -311,12 +312,13 @@ router.post('/token', function(req, res, next) {
     models.getkeys(tesla_id, function(data){
         if(data) {
             // Create the token (RS256 or ES256) RFC 7519
-            var header = {
+            /*var header = {
               "alg": "RS256",
               "typ": "JWT"
             };
             var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
             var unsigned_token = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(payload));
+
             if(!data.private_key || !data.public_key) {
                 res.status(400).send({ error: "CertificateNotFound" });
                 return;
@@ -344,7 +346,27 @@ router.post('/token', function(req, res, next) {
             var token = unsigned_token + "." + signature;
             var token_data = {
                 "token": token
+            };*/
+
+            if(!data.private_key || !data.public_key) {
+                res.status(400).send({ error: "CertificateNotFound" });
+                return;
+            }
+            var private_key = null;
+            var public_key = null;
+            try{
+                private_key = forge.pki.privateKeyFromPem(data.private_key.toString());
+                public_key = forge.pki.publicKeyFromPem(data.public_key.toString());
+            } catch (e) {
+                res.status(400).send({ error: "InvalidCertificate" });
+                return;
+            }
+            var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
+            var token = jwt.sign(payload, data.private_key.toString(), { algorithm: 'RS256'});
+            var token_data = {
+                "token": token
             };
+
 
             // Update the public key or certificate to TEP
             tep_utils.send_user_key(tesla_id, 'RSA', data.public_key.toString(), function(error, response) {
