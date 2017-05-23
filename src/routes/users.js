@@ -33,12 +33,13 @@ function getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, va
     var payload = {
         //
         "iss": process.env.TOKEN_ISSUER,  // issuer
-        "exp": new Date(new Date().getTime()+validity), // expiration time
-        "iat": new Date(), // issued at
+        "exp": Math.round(new Date(new Date().getTime()+validity).getTime()/1000), // expiration time
+        "iat": Math.round(new Date().getTime()/1000), // issued at
         "sub": tesla_id, // subject
         "vle": vle_id,
         "mode": mode,
-        "act": activity_type + activity_id
+        "act_type": activity_type,
+        "act_id": activity_id
     };
     return payload;
 }
@@ -333,7 +334,8 @@ router.post('/token', function(req, res, next) {
             if(header.alg == "RS256") {
                 var md = forge.md.sha256.create();
                 md.update(unsigned_token);
-                signature = forge.util.encode64(private_key.sign(md));
+                //signature = forge.util.encode64(private_key.sign(md));
+                signature = base64url(private_key.sign(md));
                 key_type = "RSA";
             } else if(header.alg == "ES256") {
                 // TODO: Use ecdsa
@@ -403,7 +405,7 @@ router.post('/validate', function(req, res, next) {
     var token_parts = token.split('.');
     var header = JSON.parse(base64url.decode(token_parts[0]));
     var payload = JSON.parse(base64url.decode(token_parts[1]));
-    var signature = forge.util.decode64(token_parts[2]);
+    var signature = base64url.decode(token_parts[2]);
 
     // Check if tesla_id exists
     models.getkeys(payload.sub, function(data){
