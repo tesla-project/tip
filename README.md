@@ -26,13 +26,15 @@ The environment variables used by TIP are:
     * MAX_MEM_THREAD: Maximum memory allowed for each thread. Once achieved, thread will be restarted.
     * LOG_ROTATE_MAX_BYTES: Maximum size in bytes of log files before rotate. (default 5242880)
     * LOG_ROTATE_BACKUP_COUNT: Number of log files to store as backup. Older files will be removed.
+    * SECRET_PREFIX: Prefix added to secret names.
+
     
 ### Database
 
     * DB_HOST: Database host
     * DB_PORT: Database port 
 	* DB_USER: Username used to authenticate with the database
-	* DB_PASSWORD: Password for provided username
+	* DB_PASSWORD: Password for provided username. If a secret is provided, it has preference over this environment variable.
 	* DB_NAME: Database name
 	* DB_SCHEMA: Database schema (only used when database is PostreSQL
 	
@@ -40,9 +42,12 @@ The environment variables used by TIP are:
 	
 	* USE_HTTP: If "1", TIP will listen for http requests. Otherwhise, HTTPS requests are expected. Disabling HTTPS may cause problems with authentication.
     * SSL_PATH: Path where required certificates and keys are stored.
-    * SSL_KEY: Filename of the TIP private key. This file must exist in SSL_PATH.
-    * SSL_CERT: Filename of the TIP certificate. This file must exist in SSL_PATH.
-    * SSL_CA_CERT: Filename of the CA trusted chain used to validate the certificates. This file must exist in SSL_PATH.
+    * SERVER_KEY: Filename of the TIP private key. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
+    * SERVER_CERT: Filename of the TIP certificate. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
+    * SERVER_CA: Filename of the CA trusted chain used to validate the certificates. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
+    * CLIENT_KEY: Filename of the client TIP private key. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
+    * CLIENT_CERT: Filename of the client TIP certificate. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
+    * CLIENT_CA: Filename of the client CA trusted chain used to validate the certificates. This file must exist in SSL_PATH. If a secret is provided, it has preference over this environment variable.
     * AUTH_REQUESTS: Enable or disable authentication of incoming requests. If "1", the clients must provide a valid certificate for a Plugin in the institution of the TIP (see access restrictions). If "0", no authentication is performed.
     * KEY_POOL_ENABLED: Enable or disable the use of a pool of keys. When enabled, the key is taken from a random position of a pool of KEY_POOL_SIZE keys instead of generating a new one (performance increase). Otherwise a new key is always generated for each new user. 
     * KEY_POOL_SIZE: Size of the pool of keys.

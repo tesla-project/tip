@@ -11,6 +11,7 @@ var https = require('https'), fs=require('fs'), path = require('path');
 var rfs = require('rotating-file-stream');
 var env = process.env.NODE_ENV || "development";
 var logger = require("../logger");
+var secret_utils = require('../lib/secret_utils');
 
 /**
  * Get port from environment and store in Express.
@@ -105,10 +106,19 @@ function start_tip() {
                 server.on('listening', onListening);
             });
         } else {
+            /*
             var httpsOptions = {
-                key: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_KEY)),
-                cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)),
-                ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CA_CERT)),
+                key: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_KEY)),
+                cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_CERT)),
+                ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_CA_CERT)),
+                requestCert: process.env.AUTH_REQUESTS=="1",
+                rejectUnauthorized: false
+            };
+            */
+            var httpsOptions = {
+                key: secret_utils.get_cert_path('SERVER_KEY'),
+                cert: secret_utils.get_cert_path('SERVER_CERT'),
+                ca: secret_utils.get_cert_path('SERVER_CA'),
                 requestCert: process.env.AUTH_REQUESTS=="1",
                 rejectUnauthorized: false
             };

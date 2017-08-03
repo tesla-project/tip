@@ -6,10 +6,11 @@ var Sequelize = require("sequelize");
 var env       = process.env.NODE_ENV || "development";
 var logger = require("../logger");
 var db        = {};
+var secret_utils = require('../lib/secret_utils');
 
 var db_config = {
     "username": process.env.DB_USER,
-    "password": process.env.DB_PASSWORD,
+    "password": secret_utils.get_value('DB_PASSWORD'),
     "database": process.env.DB_NAME,
     "host": process.env.DB_HOST,
     "port": process.env.DB_PORT,

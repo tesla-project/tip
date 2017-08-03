@@ -2,9 +2,13 @@ FROM node:boron
 
 ARG TIP_PORT=443
 ENV PORT $TIP_PORT
-ENV SSL_KEY "tip.uoc.tesla-project.eu.key.pem"
-ENV SSL_CERT "tip.uoc.tesla-project.eu.crt"
-ENV SSL_CA_CERT "ca.cert.pem"
+ENV SERVER_KEY "tip.uoc.tesla-project.eu.key.pem"
+ENV SERVER_CERT "tip.uoc.tesla-project.eu.crt"
+ENV SERVER_CA "ca.cert.pem"
+ENV CLIENT_KEY "tip.uoc.tesla-project.eu.key.pem"
+ENV CLIENT_CERT "tip.uoc.tesla-project.eu.crt"
+ENV CLIENT_CA "ca.cert.pem"
+ENV SECRET_PREFIX ""
 ENV SSL_PATH "/ssl"
 ENV USE_HTTP 0
 ENV LOGS_FOLDER "/logs"

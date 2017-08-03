@@ -2,6 +2,7 @@ var request = require('request');
 const url = require('url');
 var fs = require('fs');
 var path = require('path');
+var secret_utils = require('../lib/secret_utils');
 
 /*
 PUT api/tip/addTipKey
@@ -34,11 +35,19 @@ function get_optons(url, json_data) {
         //body: json_data,
         json: json_data,
         agentOptions: {
-            cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)),
-            key: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_KEY)),
-            ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CA_CERT))
+            cert: secret_utils.get_cert_value('CLIENT_CERT'),
+            key: secret_utils.get_cert_value('CLIENT_KEY'),
+            ca: secret_utils.get_cert_value('CLIENT_CA')
         }
     };
+
+    /*
+     agentOptions: {
+            cert: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_CLIENT_CERT)),
+            key: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_CLIENT_KEY)),
+            ca: fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SECRET_PREFIX + process.env.SSL_CLIENT_CA_CERT))
+        }
+    */
 
     return options;
 }
