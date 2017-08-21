@@ -116,9 +116,9 @@ function start_tip() {
             };
             */
             var httpsOptions = {
-                key: secret_utils.get_cert_path('SERVER_KEY'),
-                cert: secret_utils.get_cert_path('SERVER_CERT'),
-                ca: secret_utils.get_cert_path('SERVER_CA'),
+                key: secret_utils.get_cert_value('SERVER_KEY'),
+                cert: secret_utils.get_cert_value('SERVER_CERT'),
+                ca: secret_utils.get_cert_value('SERVER_CA'),
                 requestCert: process.env.AUTH_REQUESTS=="1",
                 rejectUnauthorized: false
             };
