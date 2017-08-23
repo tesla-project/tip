@@ -261,7 +261,7 @@ router.post('/id', use_auth, function(req, res, next) {
  * @apiSuccess {String} token Token to be used for authentication
  *
  * @apiError InvalidTeslaId Invalid TeSLA ID provided.
- * @apiError InvalidMode Invalid mode provided. Only "enrollment" and "validation" are accepted.
+ * @apiError InvalidMode Invalid mode provided. Only "enrollment" and "verification" are accepted.
  * @apiError EmptyInstrumentList The list of instruments is empty or not provided
  * @apiError InvalidInstrument There are some invalid instruments codes in the provided list.
  * @apiError CertificateNotFound There are no certificate for this user in the TIP.
@@ -306,7 +306,7 @@ router.post('/token', function(req, res, next) {
         return;
     }
 
-    if(mode!="enrollment" && mode!="validation") {
+    if(mode!="enrollment" && mode!="verification") {
         res.status(400).send({ error: "InvalidMode" });
         return;
     }
