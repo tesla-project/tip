@@ -13,6 +13,8 @@ var tep_utils = require('../lib/tep_utils');
 var logger = require("../logger");
 var jwt = require('jsonwebtoken');
 
+var secret_utils = require('../lib/secret_utils');
+
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
     var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value(process.env.SSL_CERT));
@@ -470,7 +472,7 @@ router.post('/validate', function(req, res, next) {
 });
 
 function getCert(tesla_id, keys) {
-    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_valueprocess.env.SSL_CERT);
+    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value(process.env.SSL_CERT));
     // var csr_sample = forge.pki.certificationRequestFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, 'sample.csr')));
 
     var tip_contry=tip_cert.subject.getField('C');
