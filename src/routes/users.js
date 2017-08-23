@@ -22,7 +22,17 @@ function check_plugin_cert(cert) {
         logger.error('Invalid CN. Do not corresponds to a plugin');
         return false;
     }
+
+    logger.error('TESTING. tip_cert.subject: ' + tip_cert.subject);
+    logger.error('TESTING. tip_cert.subject.getField(O): ' + tip_cert.subject.getField('O'));
+
     var tip_organization=tip_cert.subject.getField('O').value;
+
+    logger.error('TESTING. after tip_cert.subject');
+
+    logger.error('TESTING. cert.subject: ' + cert.subject);
+    logger.error('TESTING. cert.subject.O: ' + cert.subject.O);
+
     if (cert.subject.O!=tip_organization) {
         logger.error('Invalid OU. TIP organization and plugin organizations are not the same.');
         return false;
