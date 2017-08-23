@@ -15,7 +15,7 @@ var jwt = require('jsonwebtoken');
 
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
-    var tip_cert = forge.pki.certificateFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
+    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value(process.env.SSL_CERT));
     if (cn_parts[0]!="plugin") {
         logger.error('Invalid CN. Do not corresponds to a plugin');
         return false;
@@ -470,8 +470,8 @@ router.post('/validate', function(req, res, next) {
 });
 
 function getCert(tesla_id, keys) {
-    var tip_cert = forge.pki.certificateFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, process.env.SSL_CERT)));
-    var csr_sample = forge.pki.certificationRequestFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, 'sample.csr')));
+    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_valueprocess.env.SSL_CERT);
+    // var csr_sample = forge.pki.certificationRequestFromPem(fs.readFileSync(path.join(process.env.SSL_PATH, 'sample.csr')));
 
     var tip_contry=tip_cert.subject.getField('C');
     var tip_state=tip_cert.subject.getField('ST');
