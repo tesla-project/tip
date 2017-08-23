@@ -17,23 +17,24 @@ var secret_utils = require('../lib/secret_utils');
 
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
-    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value(process.env.SSL_CERT));
+    var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value('CLIENT_CERT'));
     if (cn_parts[0]!="plugin") {
         logger.error('Invalid CN. Do not corresponds to a plugin');
         return false;
     }
 
-    logger.error('TESTING. tip_cert.subject: ' + tip_cert.subject);
-    logger.error('TESTING. tip_cert.subject.getField(O): ' + tip_cert.subject.getField('O'));
 
-    var tip_organization=tip_cert.subject.getField('O').value;
+    logger.error('TESTING. process.env.SSL_CERT: ' + process.env.SSL_CERT);
+
+    logger.error('TESTING. tip_cert.subject.getField(OU): ' + tip_cert.subject.getField('OU'));
+
+    var tip_organization=tip_cert.subject.getField('OU').value;
 
     logger.error('TESTING. after tip_cert.subject');
 
-    logger.error('TESTING. cert.subject: ' + cert.subject);
-    logger.error('TESTING. cert.subject.O: ' + cert.subject.O);
+    logger.error('TESTING. cert.subject.OU: ' + cert.subject.OU);
 
-    if (cert.subject.O!=tip_organization) {
+    if (cert.subject.OU!=tip_organization) {
         logger.error('Invalid OU. TIP organization and plugin organizations are not the same.');
         return false;
     }
