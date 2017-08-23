@@ -54,7 +54,7 @@ function get_optons(url, json_data) {
 
 exports.send_user_key = function(tesla_id, algorithm, key, callback) {
 
-    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/AddUser');
+    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/v2/tip/AddUser');
     var data = {
         tesla_id: tesla_id,
         public_key: key,
@@ -69,7 +69,7 @@ exports.send_user_key = function(tesla_id, algorithm, key, callback) {
 
 exports.send_key = function(algorithm, key, callback) {
 
-    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/tip/AddTipKey');
+    var method_url = url.resolve(process.env.TEP_ADDRESS, 'api/v2/tip/AddTipKey');
     var data = {
         public_key: key,
         key_type: algorithm
