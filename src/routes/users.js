@@ -23,19 +23,10 @@ function check_plugin_cert(cert) {
         return false;
     }
 
+    var tip_organization=tip_cert.subject.getField('O').value;
 
-    logger.error('TESTING. process.env.SSL_CERT: ' + process.env.SSL_CERT);
-
-    logger.error('TESTING. tip_cert.subject.getField(OU): ' + tip_cert.subject.getField('OU'));
-
-    var tip_organization=tip_cert.subject.getField('OU').value;
-
-    logger.error('TESTING. after tip_cert.subject');
-
-    logger.error('TESTING. cert.subject.OU: ' + cert.subject.OU);
-
-    if (cert.subject.OU!=tip_organization) {
-        logger.error('Invalid OU. TIP organization and plugin organizations are not the same.');
+    if (cert.subject.O!=tip_organization) {
+        logger.error('Invalid O. TIP organization and plugin organizations are not the same.');
         return false;
     }
     return true;
