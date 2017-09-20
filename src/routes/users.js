@@ -18,7 +18,7 @@ var secret_utils = require('../lib/secret_utils');
 function check_plugin_cert(cert) {
     var cn_parts = cert.subject.CN.split('.');
     var tip_cert = forge.pki.certificateFromPem(secret_utils.get_cert_value('CLIENT_CERT'));
-    if (cn_parts[0]!="plugin") {
+    if (cn_parts[0]!="plugin" && cn_parts[0]!="lti") {
         logger.error('Invalid CN. Do not corresponds to a plugin');
         return false;
     }
