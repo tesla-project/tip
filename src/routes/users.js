@@ -204,27 +204,35 @@ router.post('/id', use_auth, function(req, res, next) {
                             };
 
                             // Send the public key or certificate to TEP
-                            tep_utils.send_user_key(tesla_id, 'RSA', public_key, function(error, response) {
-                                if (!error && response.statusCode == 200) {
-                                    res.send(ret_data);
-                                } else if(process.env.TEP_ENFORCE_KEY_SHARING=='1') {
-                                    if(error) {
-                                        logger.error('Error connecting to the TEP.', {error: error});
-                                        res.status(400).send({ error: "TEPConnectionFailed" });
-                                    } else {
-                                        if(response.statusCode==403) {
-                                            logger.error('Status code 403 from TEP.', {response: response});
-                                            res.status(400).send({ error: "TEPAccessForbidden" });
+                            if(process.env.SEND_PUBLIC_KEY=='1') {
+                                tep_utils.send_user_key(tesla_id, 'RSA', public_key, function (error, response) {
+                                    if (!error && response.statusCode == 200) {
+                                        res.send(ret_data);
+                                    } else if (process.env.TEP_ENFORCE_KEY_SHARING == '1') {
+                                        if (error) {
+                                            logger.error('Error connecting to the TEP.', {error: error});
+                                            res.status(400).send({error: "TEPConnectionFailed"});
                                         } else {
-                                            logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
-                                            res.status(400).send({ error: "TEPKeySharingError" });
+                                            if (response.statusCode == 403) {
+                                                logger.error('Status code 403 from TEP.', {response: response});
+                                                res.status(400).send({error: "TEPAccessForbidden"});
+                                            } else {
+                                                logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
+                                                res.status(400).send({error: "TEPKeySharingError"});
+                                            }
                                         }
+                                    } else {
+                                        logger.warn('Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {
+                                            error: error,
+                                            response: response
+                                        });
+                                        res.send(ret_data);
                                     }
-                                } else {
-                                    logger.warn('Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {error: error, response: response});
-                                    res.send(ret_data);
-                                }
-                            });
+                                });
+                            } else {
+                                logger.warn('Public key not delivered to TEP. SEND_PUBLIC_KEY is disabled.');
+                                res.send(ret_data);
+                            }
                         }
                     });
                 });
@@ -287,12 +295,19 @@ router.post('/token', function(req, res, next) {
     var activity_type = req.body.activity_type;
     var activity_id = req.body.activity_id;
     var validity_val = req.body.validity;
+    var max_allowed_validity = process.env.MAX_TOKEN_VALIDITY || 900;
+    var token_validity = process.env.FORCE_TOKEN_VALIDITY || 0;
+
+    if(token_validity>0) {
+        validity_val = token_validity;
+        max_allowed_validity = token_validity;
+    }
 
     var validity = 5 * 60 * 1000;
     if(validity_val) {
         validity = validity_val * 1000;
     }
-    if(validity < 1000 || validity > 900000) {
+    if(validity < 1000 || validity > (max_allowed_validity * 1000)) {
         res.status(400).send({ error: "InvalidValidity" });
         return;
     }
@@ -316,42 +331,6 @@ router.post('/token', function(req, res, next) {
     models.getkeys(tesla_id, function(data){
         if(data) {
             // Create the token (RS256 or ES256) RFC 7519
-            /*var header = {
-              "alg": "RS256",
-              "typ": "JWT"
-            };
-            var payload = getToken_payload(tesla_id, vle_id, mode, activity_type, activity_id, validity);
-            var unsigned_token = base64url(JSON.stringify(header)) + "." + base64url(JSON.stringify(payload));
-
-            if(!data.private_key || !data.public_key) {
-                res.status(400).send({ error: "CertificateNotFound" });
-                return;
-            }
-            var private_key = null;
-            var public_key = null;
-            try{
-                private_key = forge.pki.privateKeyFromPem(data.private_key.toString());
-                public_key = forge.pki.publicKeyFromPem(data.public_key.toString());
-            } catch (e) {
-                res.status(400).send({ error: "InvalidCertificate" });
-                return;
-            }
-            var key_type = null;
-            if(header.alg == "RS256") {
-                var md = forge.md.sha256.create();
-                md.update(unsigned_token);
-                //signature = forge.util.encode64(private_key.sign(md));
-                signature = base64url(private_key.sign(md));
-                key_type = "RSA";
-            } else if(header.alg == "ES256") {
-                // TODO: Use ecdsa
-                key_type = "ECDSA";
-            }
-            var token = unsigned_token + "." + signature;
-            var token_data = {
-                "token": token
-            };*/
-
             if(!data.private_key || !data.public_key) {
                 res.status(400).send({ error: "CertificateNotFound" });
                 return;
@@ -373,27 +352,35 @@ router.post('/token', function(req, res, next) {
 
 
             // Update the public key or certificate to TEP
-            tep_utils.send_user_key(tesla_id, 'RSA', data.public_key.toString(), function(error, response) {
-                if (!error && response.statusCode == 200) {
-                    res.send(token_data);
-                } else if(process.env.TEP_ENFORCE_KEY_SHARING=='1') {
-                    if(error) {
-                        logger.error('Error connecting to the TEP.', {error: error});
-                        res.status(400).send({ error: "TEPConnectionFailed" });
-                    } else {
-                        if(response.statusCode==403) {
-                            logger.error('Status code 403 from TEP.', {response: response});
-                            res.status(400).send({ error: "TEPAccessForbidden" });
+            if(process.env.SEND_PUBLIC_KEY=='1') {
+                tep_utils.send_user_key(tesla_id, 'RSA', data.public_key.toString(), function (error, response) {
+                    if (!error && response.statusCode == 200) {
+                        res.send(token_data);
+                    } else if (process.env.TEP_ENFORCE_KEY_SHARING == '1') {
+                        if (error) {
+                            logger.error('Error connecting to the TEP.', {error: error});
+                            res.status(400).send({error: "TEPConnectionFailed"});
                         } else {
-                            logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
-                            res.status(400).send({ error: "TEPKeySharingError" });
+                            if (response.statusCode == 403) {
+                                logger.error('Status code 403 from TEP.', {response: response});
+                                res.status(400).send({error: "TEPAccessForbidden"});
+                            } else {
+                                logger.error('Unexpected status code from TEP.', {statusCode: response.statusCode});
+                                res.status(400).send({error: "TEPKeySharingError"});
+                            }
                         }
+                    } else {
+                        logger.log('warn', 'Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {
+                            error: error,
+                            response: response
+                        });
+                        res.send(token_data);
                     }
-                } else {
-                    logger.log('warn', 'Public key not delivered to TEP. TEP_ENFORCE_KEY_SHARING is disabled.', {error: error, response: response});
-                    res.send(token_data);
-                }
-            });
+                });
+            } else {
+                logger.log('warn', 'Public key not delivered to TEP. SEND_PUBLIC_KEY is disabled.');
+                res.send(token_data);
+            }
         } else {
             res.status(401).send({ error: "InvalidTeslaId" });
         }

@@ -51,6 +51,9 @@ The environment variables used by TIP are:
     * AUTH_REQUESTS: Enable or disable authentication of incoming requests. If "1", the clients must provide a valid certificate for a Plugin in the institution of the TIP (see access restrictions). If "0", no authentication is performed.
     * KEY_POOL_ENABLED: Enable or disable the use of a pool of keys. When enabled, the key is taken from a random position of a pool of KEY_POOL_SIZE keys instead of generating a new one (performance increase). Otherwise a new key is always generated for each new user. 
     * KEY_POOL_SIZE: Size of the pool of keys.
+    * MAX_TOKEN_VALIDITY: Maximum allowed JWT tokens life in seconds. Default 900 seconds
+    * FORCE_TOKEN_VALIDITY: If 0 the value is taked from request. If is a positive, all tokens will have the provided token live in seconds. 
+    
     
 ### Tokens
     
