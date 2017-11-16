@@ -301,8 +301,8 @@ router.post('/token', function(req, res, next) {
     var max_allowed_validity = process.env.MAX_TOKEN_VALIDITY || 900;
     var token_validity = process.env.FORCE_TOKEN_VALIDITY || 0;
 
-    if (!Array.isArray(instrument)) {
-        instrument = [instrument];
+    if (!Array.isArray(instrument_list)) {
+        instrument_list = [instrument_list];
     }
 
     if(token_validity>0) {
