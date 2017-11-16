@@ -288,6 +288,9 @@ router.post('/id', use_auth, function(req, res, next) {
  *     }
  */
 router.post('/token', function(req, res, next) {
+    logger.error('request:'+req);
+    logger.error('instrument list:'+req.body.instrument_list);
+    
     var tesla_id = req.body.tesla_id;
     var vle_id = req.body.vle_id;
     var instrument_list = req.body.instrument_list;
@@ -297,6 +300,10 @@ router.post('/token', function(req, res, next) {
     var validity_val = req.body.validity;
     var max_allowed_validity = process.env.MAX_TOKEN_VALIDITY || 900;
     var token_validity = process.env.FORCE_TOKEN_VALIDITY || 0;
+
+    if (!Array.isArray(instrument)) {
+        instrument = [instrument];
+    }
 
     if(token_validity>0) {
         validity_val = token_validity;
