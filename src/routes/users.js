@@ -288,9 +288,6 @@ router.post('/id', use_auth, function(req, res, next) {
  *     }
  */
 router.post('/token', function(req, res, next) {
-    logger.error('request:'+req);
-    logger.error('instrument list:'+req.body.instrument_list);
-    
     var tesla_id = req.body.tesla_id;
     var vle_id = req.body.vle_id;
     var instrument_list = req.body.instrument_list;
@@ -301,6 +298,7 @@ router.post('/token', function(req, res, next) {
     var max_allowed_validity = process.env.MAX_TOKEN_VALIDITY || 900;
     var token_validity = process.env.FORCE_TOKEN_VALIDITY || 0;
 
+    // TODO: remove this lines and put this staff in correct way. The problem is middlewware.
     if (!Array.isArray(instrument_list)) {
         instrument_list = [instrument_list];
     }
