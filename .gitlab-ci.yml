@@ -1,4 +1,4 @@
-image: ${CI_PROJECT_NAME}:latest-service
+image: tip:latest-service
 
 services:
   - docker:dind
