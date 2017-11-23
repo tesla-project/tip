@@ -166,7 +166,8 @@ if (process.env.AUTH_REQUESTS=="1" || process.env.AUTH_REQUESTS==1){
 
 router.post('/id', use_auth, function(req, res, next) {
     var mail = req.body.mail;
-    if(validator.validate(mail)) {
+    var allow_everything = (process.env.DISABLE_MAIL_VERIFICATION | '0') == '1';
+    if(validator.validate(mail) || allow_everything) {
         models.getTeslaID(mail, function (data) {
             if(data) {
                 var ret_data = {
@@ -389,6 +390,8 @@ router.post('/token', function(req, res, next) {
         } else {
             res.status(401).send({ error: "InvalidTeslaId" });
         }
+    }, function(error) {
+        res.status(401).send({ error: "InvalidTeslaId" });
     });
 });
 
@@ -515,5 +518,78 @@ router.get('/test_csr', function(req, res, next) {
     });
 });
 
+/**
+ * @api {POST} /users/check/id Check if a provided TeSLA ID exists or not
+ * @apiName CheckUser
+ * @apiGroup Users
+ *
+ * @apiParam {String} tesla_id TeSLA ID.
+ *
+ * @apiSuccess {Boolean} True if the TeSLA ID exists or False otherwise
+ *
+ * @apiExample {curl} Example usage:
+ *     curl --request POST --url https://tip.test.tesla-project.eu/users/id --header 'content-type: application/json' --data '{"tesla_id": "9cd125c3-badb-4aa7-b694-321e0d76858f"}'
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "result": true
+ *     }
+ */
+router.post('/check/id', function(req, res, next) {
+    var tesla_id = req.body.tesla_id;
+    models.getkeys(tesla_id, function (data) {
+        if (data) {
+            var ret_data = {
+                "result": true
+            };
+            res.send(ret_data);
+        } else {
+            var ret_data = {
+                "result": false
+            };
+            res.send(ret_data);
+        }
+    }, function(error) {
+        var ret_data = {
+            "result": false
+        };
+        res.send(ret_data);
+    });
+});
+
+/**
+ * @api {POST} /users/check/mail Check if a provided mail is already exists or not
+ * @apiName CheckMail
+ * @apiGroup Users
+ *
+ * @apiParam {String} mail Valid email account.
+ *
+ * @apiSuccess {Boolean} True if the mail exists or False otherwise
+ *
+ * @apiExample {curl} Example usage:
+ *     curl --request POST --url https://tip.test.tesla-project.eu/users/id --header 'content-type: application/json' --data '{"mail": "xbaro@uoc.edu"}'
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "result": true
+ *     }
+ */
+router.post('/check/mail', function(req, res, next) {
+    var mail = req.body.mail;
+
+    models.getTeslaID(mail, function (data) {
+        if (data) {
+            var ret_data = {
+                "result": true
+            };
+            res.send(ret_data);
+        } else {
+            var ret_data = {
+                "result": false
+            };
+            res.send(ret_data);
+        }
+    });
+});
 
 module.exports = router;

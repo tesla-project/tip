@@ -27,6 +27,7 @@ The environment variables used by TIP are:
     * LOG_ROTATE_MAX_BYTES: Maximum size in bytes of log files before rotate. (default 5242880)
     * LOG_ROTATE_BACKUP_COUNT: Number of log files to store as backup. Older files will be removed.
     * SECRET_PREFIX: Prefix added to secret names.
+    * DISABLE_MAIL_VERIFICATION: Disable the mail format checking in cases not standards are used 
 
     
 ### Database
@@ -52,7 +53,8 @@ The environment variables used by TIP are:
     * KEY_POOL_ENABLED: Enable or disable the use of a pool of keys. When enabled, the key is taken from a random position of a pool of KEY_POOL_SIZE keys instead of generating a new one (performance increase). Otherwise a new key is always generated for each new user. 
     * KEY_POOL_SIZE: Size of the pool of keys.
     * MAX_TOKEN_VALIDITY: Maximum allowed JWT tokens life in seconds. Default 900 seconds
-    * FORCE_TOKEN_VALIDITY: If 0 the value is taked from request. If is a positive, all tokens will have the provided token live in seconds. 
+    * FORCE_TOKEN_VALIDITY: If 0 the value is taked from request. If is a positive, all tokens will have the provided token live in seconds.
+     
     
     
 ### Tokens

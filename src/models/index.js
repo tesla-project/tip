@@ -42,8 +42,14 @@ db.getTeslaID = function(email, callback) {
   db.TeslaID.findOne({ where: { email: email}}).then(callback);
 };
 
-db.getkeys = function(tesla_id, callback) {
-  db.TeslaID.findOne({ where: { tesla_id: tesla_id}}).then(callback);
+db.getkeys = function(tesla_id, callback, error_callback) {
+  db.TeslaID.findOne({ where: { tesla_id: tesla_id}}).then(callback).catch(function(error) {
+      if (error_callback) {
+          error_callback(error)
+      } else {
+          logger.log(error);
+      }
+  });
 };
 
 db.createTeslaID = function(tesla_id, email, public_key, private_key, callback) {
