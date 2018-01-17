@@ -23,7 +23,13 @@ function check_plugin_cert(cert) {
         return false;
     }
 
-    var tip_organization=tip_cert.subject.getField('O').value;
+    var tip_organization=null;
+    if (tip_cert.subject.getField('O')) {
+        tip_organization = tip_cert.subject.getField('O').value;
+    }
+    if (tip_organization == null) {
+        logger.error('Invalid certificate. Cannot read field O.');
+    }
 
     if (cert.subject.O!=tip_organization) {
         logger.error('Invalid O. TIP organization and plugin organizations are not the same.');
@@ -253,7 +259,7 @@ router.post('/id', use_auth, function(req, res, next) {
  * @apiParam {String} tesla_id User TeSLA ID.
  * @apiParam {String} vle_id VLE identifier.
  * @apiParam {Number[]} instrument_list List of instrument codes.
- * @apiParam {String="enrollment","verification"} mode Working mode, enrollment or verification.
+ * @apiParam {String="enrollment","verification","audit"} mode Working mode, enrollment, verification or audit.
  * @apiParam {String} [activity_type] Activity type
  * @apiParam {String} [activity_id] Activity type
  * @apiParam {String} [validity] Token validity in seconds (default 300 = 5 minutes)
@@ -318,7 +324,7 @@ router.post('/token', function(req, res, next) {
         return;
     }
 
-    if(mode!="enrollment" && mode!="verification") {
+    if(mode!="enrollment" && mode!="verification" && mode!="audit") {
         res.status(400).send({ error: "InvalidMode" });
         return;
     }
