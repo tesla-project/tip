@@ -1,0 +1,40 @@
+{
+  "name": "tip",
+  "version": "0.1.2",
+  "description": "TeSLA Identity Provider",
+  "author": "Xavier Baró <xbaro@uoc.edu>",
+  "repository": "https://github.com/tesla-project/tip",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "start": "node ./main.js"
+  },
+  "dependencies": {
+    "apidoc": "^0.17.7",
+    "base64url": "^2.0.0",
+    "body-parser": "~1.16.0",
+    "client-certificate-auth": "^0.3.0",
+    "cookie-parser": "~1.4.3",
+    "crypto": "0.0.3",
+    "debug": "~2.6.0",
+    "email-validator": "^1.0.7",
+    "express": "~4.14.1",
+    "jsonwebtoken": "^7.4.1",
+    "morgan": "~1.7.0",
+    "node-forge": "^0.7.0",
+    "pg": "^6.1.2",
+    "pm2": "^2.4.0",
+    "pug": "^2.0.0-beta11",
+    "request": "^2.79.0",
+    "rotating-file-stream": "^1.1.9",
+    "sequelize": "^3.30.2",
+    "serve-favicon": "~2.3.2",
+    "sprintf": "^0.1.5",
+    "uuid": "^3.0.1",
+    "winston": "^2.3.1",
+    "winston-express": "^0.1.1"
+  },
+  "apidoc": {
+    "title": "TeSLA Identity Provider",
+    "url": "https://tip.test.tesla-project.eu"
+  }
+}

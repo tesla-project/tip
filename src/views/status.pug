@@ -1,0 +1,54 @@
+extends layout
+
+block content
+    h1= title
+    style.
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+    #connected
+        if connected
+            p Connected to the process manager
+
+            #data
+                table
+                    tr
+                        th ID
+                        th Process Name
+                        th Status
+                        th CPU
+                        th Memory
+                        th Created
+                        th Mode
+                        th Instances
+                    if data.length>0
+                        each val in data
+                            tr
+                                td= val.pm_id
+                                td= val.name
+                                td= val.status
+                                td  #{sprintf("%d %%", val.cpu)}
+                                td  #{sprintf("%0.2f Mb", val.memory/1000000.0)}
+                                td  #{moment(new Date(val.created_at)).format('DD/MM/YYYY hh:mm:ss')}
+                                td= val.exec_mode
+                                td= val.instances
+                    else
+                        tr(colspan="4") No running processes
+        else
+            p Cannot connect to the process manager
+
+
+
